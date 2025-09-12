@@ -18,6 +18,7 @@ import { UserButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { api } from "@/convex/_generated/api";
 import { useConvexQuery } from "@/hooks/use-convex-query";
+import Image from "next/image";
 
 const sidebarItems = [
   {
@@ -70,8 +71,14 @@ export default function DashboardLayout({ children }) {
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-700">
-          <Link href="/" className="flex items-center space-x-3">
-            <span className="font-bold text-lg">Creator Platform</span>
+          <Link href={"/"} className="flex-shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Creatr Logo"
+              width={96}
+              height={32}
+              className="h-8 sm:h-10 md:h-11 w-auto object-contain"
+            />
           </Link>
 
           {/* Mobile Close Button */}

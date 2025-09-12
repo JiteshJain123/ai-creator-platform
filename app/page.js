@@ -17,8 +17,8 @@ import {
   socialProofStats,
   testimonials,
 } from "@/lib/data";
-import FloatingAnimations from "@/components/floating-element";
 import Image from "next/image";
+import Link from "next/link";
 
 const Home = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -62,7 +62,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
             <div className="space-y-4 sm:space-y-6">
-              <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-none tracking-tight">
+              <h1 className="text-7xl lg:text-8xl font-black leading-none tracking-tight">
                 <span className="block font-black text-white">Create.</span>
                 <span className="block font-light italic text-purple-300">
                   Publish.
@@ -72,7 +72,7 @@ const Home = () => {
                 </span>
               </h1>
 
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-300 font-light leading-relaxed max-w-2xl lg:max-w-none">
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-300 font-light leading-relaxed max-w-2xl md:max-w-none">
                 The AI-powered platform that turns your ideas into{" "}
                 <span className="text-purple-300 font-semibold">
                   engaging content
@@ -82,21 +82,25 @@ const Home = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 items-center lg:items-start">
-              <Button
-                size="xl"
-                variant="primary"
-                className="rounded-full w-full sm:w-auto text-white"
-              >
-                Start Creating for Free
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="xl"
-                className="rounded-full w-full sm:w-auto"
-              >
-                Watch Demo
-              </Button>
+              <Link href="/dashboard">
+                <Button
+                  size="xl"
+                  variant="primary"
+                  className="rounded-full w-full sm:w-auto text-white"
+                >
+                  Start Creating for Free
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/feed">
+                <Button
+                  variant="outline"
+                  size="xl"
+                  className="rounded-full w-full sm:w-auto"
+                >
+                  Explore the Feed
+                </Button>
+              </Link>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6 sm:gap-8 text-sm text-gray-400">
@@ -134,8 +138,15 @@ const Home = () => {
           </div>
 
           {/* Interactive 3D-style elements */}
-          <div className="relative order-first lg:order-last">
-            <FloatingAnimations />
+          <div>
+            <Image
+              src="/banner.png"
+              alt="Platform Banner"
+              width={500}
+              height={700}
+              className="w-full h-auto object-contain"
+              priority
+            />
           </div>
         </div>
       </section>
@@ -347,17 +358,25 @@ const Home = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button
-              size="xl"
-              variant="primary"
-              className="rounded-full text-white"
-            >
-              Start Your Journey
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-            <Button variant="outline" size="xl" className="rounded-full">
-              Book a Demo
-            </Button>
+            <Link href="/dashboard">
+              <Button
+                size="xl"
+                variant="primary"
+                className="rounded-full text-white w-full"
+              >
+                Start Your Journey
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            </Link>
+            <Link href="/feed">
+              <Button
+                variant="outline"
+                size="xl"
+                className="rounded-full w-full"
+              >
+                Explore the Feed
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

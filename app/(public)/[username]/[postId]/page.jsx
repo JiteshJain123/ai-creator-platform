@@ -142,8 +142,14 @@ export default function PostDetailPage({ params }) {
               Back to Profile
             </Button>
           </Link>
-          <Link href="/" className="font-bold text-lg">
-            AI Creator Platform
+          <Link href={"/"} className="flex-shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Creatr Logo"
+              width={96}
+              height={32}
+              className="h-8 sm:h-10 md:h-11 w-auto object-contain"
+            />
           </Link>
         </div>
       </header>
