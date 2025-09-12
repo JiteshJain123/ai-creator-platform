@@ -154,7 +154,7 @@ const Home = () => {
       {/* Features Grid */}
       <section
         id="features"
-        className="relative z-10 py-16 sm:py-24 lg:py-32 px-4 sm:px-6"
+        className="relative mt-14 z-10 py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-r from-gray-900/50 to-purple-900/20"
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 sm:mb-16 lg:mb-20">
@@ -193,7 +193,7 @@ const Home = () => {
       </section>
 
       {/* Platform Showcase */}
-      <section className="relative z-10 py-16 sm:py-24 lg:py-32 px-4 sm:px-6">
+      <section className="relative z-10 py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 sm:mb-6">
@@ -261,7 +261,7 @@ const Home = () => {
       </section>
 
       {/* Social Proof */}
-      <section className="relative z-10 py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-gradient-to-r from-gray-900/50 to-purple-900/20">
+      <section className="relative z-10 py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-r from-gray-900/50 to-purple-900/20">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-12 sm:mb-16">
             <span className="gradient-text-primary">
@@ -290,7 +290,7 @@ const Home = () => {
       {/* Testimonials */}
       <section
         id="testimonials"
-        className="relative z-10 py-16 sm:py-24 lg:py-32 px-4 sm:px-6"
+        className="relative z-10 py-16 sm:py-24 px-4 sm:px-6"
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 sm:mb-16">
@@ -347,7 +347,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="relative z-10 py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-gradient-to-r from-gray-900/50 to-purple-900/20">
+      <section className="relative z-10 py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-r from-gray-900/50 to-purple-900/20">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 sm:mb-8">
             <span className="gradient-text-primary">Ready to create?</span>
