@@ -30,12 +30,15 @@ export default function PostEditor({
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [imageModalType, setImageModalType] = useState("featured");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
   const [quillRef, setQuillRef] = useState(null);
 
-  // Mutations
-  const createPost = useConvexMutation(api.posts.create);
-  const updatePost = useConvexMutation(api.posts.update);
+  // Mutations with built-in loading states
+  const { mutate: createPost, isLoading: isCreateLoading } = useConvexMutation(
+    api.posts.create
+  );
+  const { mutate: updatePost, isLoading: isUpdating } = useConvexMutation(
+    api.posts.update
+  );
 
   // Form setup
   const form = useForm({
@@ -87,8 +90,6 @@ export default function PostEditor({
 
   // Submit handler
   const onSubmit = async (data, action, silent = false) => {
-    if (!silent) setIsPublishing(true);
-
     try {
       const postData = {
         title: data.title,
@@ -106,19 +107,19 @@ export default function PostEditor({
 
       if (mode === "edit" && initialData?._id) {
         // Always use update for edit mode
-        resultId = await updatePost.mutate({
+        resultId = await updatePost({
           id: initialData._id,
           ...postData,
         });
       } else if (initialData?._id && action === "draft") {
         // If we have existing draft data, update it
-        resultId = await updatePost.mutate({
+        resultId = await updatePost({
           id: initialData._id,
           ...postData,
         });
       } else {
         // Create new post (will auto-update existing draft if needed)
-        resultId = await createPost.mutate(postData);
+        resultId = await createPost(postData);
       }
 
       if (!silent) {
@@ -132,8 +133,6 @@ export default function PostEditor({
     } catch (error) {
       if (!silent) toast.error(error.message || "Failed to save post");
       throw error;
-    } finally {
-      if (!silent) setIsPublishing(false);
     }
   };
 
@@ -158,7 +157,7 @@ export default function PostEditor({
       <PostEditorHeader
         mode={mode}
         initialData={initialData}
-        isPublishing={isPublishing}
+        isPublishing={isCreateLoading || isUpdating}
         onSave={handleSave}
         onPublish={handlePublish}
         onSchedule={handleSchedule}

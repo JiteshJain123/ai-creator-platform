@@ -154,11 +154,11 @@ export default function DashboardLayout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <div className="lg:ml-64">
+      <div className="ml-0 lg:ml-64">
         {/* Top Header */}
         <header
           className="fixed w-full top-0 right-0 z-30 bg-slate-800/80 backdrop-blur-md border-b border-slate-700"
-          style={{ left: "auto", width: "calc(100% - 16rem)" }}
+          // style={{ left: "auto", width: "calc(100% - 16rem)" }}
         >
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
             {/* Left Side - Mobile Menu + Search */}

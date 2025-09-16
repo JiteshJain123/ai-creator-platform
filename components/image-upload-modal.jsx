@@ -38,7 +38,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { transformations, uploadToImageKit } from "@/lib/imagekit";
+import { buildTransformationUrl, uploadToImageKit } from "@/lib/imagekit";
 
 // Form validation schema
 const transformationSchema = z.object({
@@ -162,7 +162,7 @@ export default function ImageUploadModal({
   });
 
   // Apply transformations
-  const applyTransformations = useCallback(() => {
+  const applyTransformations = async () => {
     if (!uploadedImage) return;
 
     setIsTransforming(true);
@@ -212,10 +212,13 @@ export default function ImageUploadModal({
       }
 
       // Apply transformations
-      const transformedUrl = transformations.combineTransformations(
+      const transformedUrl = buildTransformationUrl(
         uploadedImage.url,
         transformationChain
       );
+
+      // Add a small delay to show loading state and allow ImageKit to process
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       setTransformedImage(transformedUrl);
       toast.success("Transformations applied!");
@@ -225,7 +228,7 @@ export default function ImageUploadModal({
     } finally {
       setIsTransforming(false);
     }
-  }, [uploadedImage, watchedValues]);
+  };
 
   // Reset transformations
   const resetTransformations = () => {
