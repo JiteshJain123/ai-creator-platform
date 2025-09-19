@@ -25,6 +25,7 @@ import Link from "next/link";
 import { api } from "@/convex/_generated/api";
 import { useConvexQuery } from "@/hooks/use-convex-query";
 import { formatDistanceToNow } from "date-fns";
+import DailyViewsChart from "@/components/daily-views-chart";
 
 export default function DashboardPage() {
   // Fetch real data
@@ -38,6 +39,9 @@ export default function DashboardPage() {
   const { data: recentActivity, isLoading: activityLoading } = useConvexQuery(
     api.dashboard.getRecentActivity,
     { limit: 8 }
+  );
+  const { data: dailyViewsData, isLoading: chartLoading } = useConvexQuery(
+    api.dashboard.getDailyViews
   );
 
   // Format time relative to now
@@ -276,7 +280,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Analytics Chart Placeholder */}
+          {/* Analytics Chart */}
           <Card className="card-glass">
             <CardHeader>
               <CardTitle className="text-white flex items-center">
@@ -286,9 +290,7 @@ export default function DashboardPage() {
               <CardDescription>Views over the last 30 days</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-64 bg-slate-800/30 rounded-lg flex items-center justify-center border border-slate-700">
-                <p className="text-slate-400">Chart will be implemented here</p>
-              </div>
+              <DailyViewsChart data={dailyViewsData} isLoading={chartLoading} />
             </CardContent>
           </Card>
         </div>
