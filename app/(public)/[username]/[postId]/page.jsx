@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  ArrowLeft,
   Eye,
   Heart,
   MessageCircle,
@@ -22,6 +21,7 @@ import { api } from "@/convex/_generated/api";
 import { useConvexQuery, useConvexMutation } from "@/hooks/use-convex-query";
 import { toast } from "sonner";
 import { useUser } from "@clerk/nextjs";
+import PublicHeader from "../_components/public-header";
 
 export default function PostDetailPage({ params }) {
   const { username, postId } = React.use(params);
@@ -130,29 +130,7 @@ export default function PostDetailPage({ params }) {
   return (
     <div className="min-h-screen bg-slate-900 text-white">
       {/* Header */}
-      <header className="border-b border-slate-800 sticky top-0 bg-slate-900/80 backdrop-blur-sm z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href={`/${username}`}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-slate-400 hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Profile
-            </Button>
-          </Link>
-          <Link href={"/"} className="flex-shrink-0">
-            <Image
-              src="/logo.png"
-              alt="Creatr Logo"
-              width={96}
-              height={32}
-              className="h-8 sm:h-10 md:h-11 w-auto object-contain"
-            />
-          </Link>
-        </div>
-      </header>
+      <PublicHeader link={`/${username}`} title="Back to Profile" />
 
       <div className="max-w-4xl mx-auto px-6 py-8">
         <article className="space-y-8">

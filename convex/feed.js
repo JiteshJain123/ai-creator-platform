@@ -1,4 +1,3 @@
-// convex/feed.js
 import { v } from "convex/values";
 import { query } from "./_generated/server";
 
@@ -131,68 +130,6 @@ export const getFeed = query({
       nextCursor:
         validPosts.length > 0 ? validPosts[validPosts.length - 1]._id : null,
     };
-  },
-});
-
-// Get users that current user is following
-export const getFollowing = query({
-  args: { limit: v.optional(v.number()) },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return [];
-    }
-
-    const currentUser = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("tokenIdentifier"), identity.tokenIdentifier))
-      .unique();
-
-    if (!currentUser) {
-      return [];
-    }
-
-    const limit = args.limit || 20;
-
-    // Get follows
-    const follows = await ctx.db
-      .query("follows")
-      .filter((q) => q.eq(q.field("followerId"), currentUser._id))
-      .order("desc")
-      .take(limit);
-
-    // Get user details for each follow
-    const following = await Promise.all(
-      follows.map(async (follow) => {
-        const user = await ctx.db.get(follow.followingId);
-        if (!user) return null;
-
-        // Get recent post count
-        const recentPosts = await ctx.db
-          .query("posts")
-          .filter((q) =>
-            q.and(
-              q.eq(q.field("authorId"), user._id),
-              q.eq(q.field("status"), "published")
-            )
-          )
-          .order("desc")
-          .take(3);
-
-        return {
-          _id: user._id,
-          name: user.name,
-          username: user.username,
-          imageUrl: user.imageUrl,
-          followedAt: follow.createdAt,
-          recentPostCount: recentPosts.length,
-          lastPostAt:
-            recentPosts.length > 0 ? recentPosts[0].publishedAt : null,
-        };
-      })
-    );
-
-    return following.filter((user) => user !== null);
   },
 });
 

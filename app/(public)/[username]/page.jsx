@@ -2,9 +2,8 @@
 
 import React from "react";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
-import { Calendar, ArrowLeft, UserPlus, UserCheck } from "lucide-react";
+import { Calendar, UserPlus, UserCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
@@ -12,6 +11,7 @@ import { useConvexQuery, useConvexMutation } from "@/hooks/use-convex-query";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import PostCard from "@/components/post-card";
+import PublicHeader from "./_components/public-header";
 
 export default function ProfilePage({ params }) {
   const { username } = React.use(params);
@@ -83,29 +83,7 @@ export default function ProfilePage({ params }) {
   return (
     <div className="min-h-screen bg-slate-900 text-white">
       {/* Header */}
-      <header className="border-b border-slate-800 sticky top-0 bg-slate-900/80 backdrop-blur-sm z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-slate-400 hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-          <Link href={"/"} className="flex-shrink-0">
-            <Image
-              src="/logo.png"
-              alt="Creatr Logo"
-              width={96}
-              height={32}
-              className="h-8 sm:h-10 md:h-11 w-auto object-contain"
-            />
-          </Link>
-        </div>
-      </header>
+      <PublicHeader link="/" title="Back to Home" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Profile Header */}

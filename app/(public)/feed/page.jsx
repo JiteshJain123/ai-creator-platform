@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useInView } from "react-intersection-observer";
-import { TrendingUp, Users, UserPlus, Loader2, Sparkles } from "lucide-react";
+import { TrendingUp, UserPlus, Loader2, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
@@ -18,7 +18,7 @@ export default function FeedPage() {
   const [activeTab, setActiveTab] = useState("feed"); // "feed" or "trending"
 
   // Infinite scroll detection
-  const { ref: loadMoreRef, inView } = useInView({
+  const { ref: loadMoreRef } = useInView({
     threshold: 0,
     rootMargin: "100px",
   });
@@ -27,11 +27,6 @@ export default function FeedPage() {
   const { data: feedData, isLoading: feedLoading } = useConvexQuery(
     api.feed.getFeed,
     { limit: 15 }
-  );
-
-  const { data: following, isLoading: followingLoading } = useConvexQuery(
-    api.feed.getFollowing,
-    { limit: 8 }
   );
 
   const { data: suggestedUsers, isLoading: suggestionsLoading } =
@@ -193,72 +188,12 @@ export default function FeedPage() {
 
           {/* Left Sidebar - Following */}
           <div className="lg:col-span-2 space-y-6 mt-14">
-            {/* Following List */}
-            <Card className="card-glass">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <Users className="h-5 w-5 mr-2" />
-                  Following ({following?.length || 0})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {followingLoading ? (
-                  <div className="flex justify-center py-4">
-                    <Loader2 className="h-5 w-5 animate-spin text-purple-400" />
-                  </div>
-                ) : !following || following.length === 0 ? (
-                  <div className="text-center py-4">
-                    <p className="text-slate-400 text-sm">
-                      You're not following anyone yet
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {following.map((user) => (
-                      <Link key={user._id} href={`/${user.username}`}>
-                        <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-800/50 cursor-pointer transition-colors">
-                          <div className="relative w-8 h-8">
-                            {user.imageUrl ? (
-                              <Image
-                                src={user.imageUrl}
-                                alt={user.name}
-                                fill
-                                className="rounded-full object-cover"
-                                sizes="32px"
-                              />
-                            ) : (
-                              <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xs font-bold">
-                                {user.name.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-white truncate">
-                              {user.name}
-                            </p>
-                            <p className="text-xs text-slate-400">
-                              @{user.username}
-                            </p>
-                          </div>
-                          {user.recentPostCount > 0 && (
-                            <div className="text-xs text-purple-400 font-medium">
-                              {user.recentPostCount} new
-                            </div>
-                          )}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Suggested Users */}
             <Card className="card-glass">
               <CardHeader>
                 <CardTitle className="text-white flex items-center">
                   <Sparkles className="h-5 w-5 mr-2" />
-                  Suggested for you
+                  Suggested Users
                 </CardTitle>
               </CardHeader>
               <CardContent>
