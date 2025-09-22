@@ -1,109 +1,23 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
 
-// Get feed posts - prioritizes followed users for logged-in users
+// Get feed posts - can improve it to show following posts first
 export const getFeed = query({
   args: {
     limit: v.optional(v.number()),
-    cursor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
     const limit = args.limit || 10;
 
-    // Get current user if authenticated
-    let currentUser = null;
-    let followedUserIds = [];
+    const allPosts = await ctx.db
+      .query("posts")
+      .filter((q) => q.eq(q.field("status"), "published"))
+      .order("desc")
+      .take(limit + 1);
 
-    if (identity) {
-      currentUser = await ctx.db
-        .query("users")
-        .filter((q) =>
-          q.eq(q.field("tokenIdentifier"), identity.tokenIdentifier)
-        )
-        .unique();
+    const hasMore = allPosts.length > limit;
+    const feedPosts = hasMore ? allPosts.slice(0, limit) : allPosts;
 
-      if (currentUser) {
-        // Get list of users current user is following
-        const follows = await ctx.db
-          .query("follows")
-          .filter((q) => q.eq(q.field("followerId"), currentUser._id))
-          .collect();
-
-        followedUserIds = follows.map((follow) => follow.followingId);
-      }
-    }
-
-    // If user is logged in and following people, prioritize their posts
-    let feedPosts = [];
-    let hasMore = false;
-
-    if (followedUserIds.length > 0) {
-      // Get posts from followed users first
-      const followedPosts = await ctx.db
-        .query("posts")
-        .filter((q) =>
-          q.and(
-            q.eq(q.field("status"), "published"),
-            q.or(...followedUserIds.map((id) => q.eq(q.field("authorId"), id)))
-          )
-        )
-        .order("desc")
-        .take(Math.ceil(limit * 0.7)); // 70% from followed users
-
-      feedPosts = [...followedPosts];
-
-      // Fill remaining with general posts (excluding already included and own posts)
-      const remainingLimit = limit - followedPosts.length;
-      if (remainingLimit > 0) {
-        const excludeIds = new Set([
-          ...followedPosts.map((p) => p._id),
-          //   currentUser._id, // Exclude own posts
-        ]);
-
-        const generalPosts = await ctx.db
-          .query("posts")
-          .filter((q) =>
-            q.and(
-              q.eq(q.field("status"), "published"),
-              q.neq(q.field("authorId"), currentUser._id)
-            )
-          )
-          .order("desc")
-          .collect();
-
-        const filteredGeneralPosts = generalPosts
-          .filter(
-            (post) =>
-              !excludeIds.has(post._id) &&
-              !followedUserIds.includes(post.authorId)
-          )
-          .slice(0, remainingLimit);
-
-        feedPosts = [...feedPosts, ...filteredGeneralPosts];
-      }
-    } else {
-      // For non-logged-in users or users not following anyone, show general feed
-      let query = ctx.db
-        .query("posts")
-        .filter((q) => q.eq(q.field("status"), "published"));
-
-      // Exclude own posts if logged in
-      //   if (currentUser) {
-      //     query = query.filter((q) =>
-      //       q.neq(q.field("authorId"), currentUser._id)
-      //     );
-      //   }
-
-      const allPosts = await query.order("desc").take(limit + 1);
-      hasMore = allPosts.length > limit;
-      feedPosts = hasMore ? allPosts.slice(0, limit) : allPosts;
-    }
-
-    // Sort all posts by published date
-    feedPosts.sort((a, b) => b.publishedAt - a.publishedAt);
-
-    // Add author information to each post
     const postsWithAuthors = await Promise.all(
       feedPosts.map(async (post) => {
         const author = await ctx.db.get(post.authorId);
@@ -121,14 +35,9 @@ export const getFeed = query({
       })
     );
 
-    // Filter out posts with no author (deleted users)
-    const validPosts = postsWithAuthors.filter((post) => post.author !== null);
-
     return {
-      posts: validPosts,
-      hasMore: validPosts.length === limit,
-      nextCursor:
-        validPosts.length > 0 ? validPosts[validPosts.length - 1]._id : null,
+      posts: postsWithAuthors.filter((post) => post.author !== null),
+      hasMore,
     };
   },
 });
