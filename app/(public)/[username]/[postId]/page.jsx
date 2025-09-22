@@ -1,42 +1,46 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import PublicHeader from "../_components/public-header";
+import { useUser } from "@clerk/nextjs";
+import { useConvexMutation, useConvexQuery } from "@/hooks/use-convex-query";
+import { api } from "@/convex/_generated/api";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import {
+  Calendar,
   Eye,
   Heart,
+  Loader2,
   MessageCircle,
-  Calendar,
   Send,
   Trash2,
-  Loader2,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { api } from "@/convex/_generated/api";
-import { useConvexQuery, useConvexMutation } from "@/hooks/use-convex-query";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useUser } from "@clerk/nextjs";
-import PublicHeader from "../_components/public-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { BarLoader } from "react-spinners";
 
-export default function PostDetailPage({ params }) {
+const PostPage = ({ params }) => {
   const { username, postId } = React.use(params);
   const { user: currentUser } = useUser();
-  const [commentContent, setCommentContent] = useState("");
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
-  // Get post data
+  const { data: currentConvexUser } = useConvexQuery(
+    api.users.getCurrentUser,
+    currentUser ? {} : "skip"
+  );
+
+  const [commentContent, setCommentContent] = useState("");
+
   const {
     data: post,
     isLoading: postLoading,
     error: postError,
   } = useConvexQuery(api.public.getPublishedPost, { username, postId });
 
-  // Get comments
   const { data: comments, isLoading: commentsLoading } = useConvexQuery(
     api.comments.getPostComments,
     { postId }
@@ -48,10 +52,13 @@ export default function PostDetailPage({ params }) {
     currentUser ? { postId } : "skip"
   );
 
-  // Mutations
   const toggleLike = useConvexMutation(api.likes.toggleLike);
-  const addComment = useConvexMutation(api.comments.addComment);
+
+  const { mutate: addComment, isLoading: isSubmittingComment } =
+    useConvexMutation(api.comments.addComment);
+
   const deleteComment = useConvexMutation(api.comments.deleteComment);
+
   const incrementView = useConvexMutation(api.public.incrementViewCount);
 
   // Track view when post loads
@@ -102,10 +109,8 @@ export default function PostDetailPage({ params }) {
       return;
     }
 
-    setIsSubmittingComment(true);
-
     try {
-      await addComment.mutate({
+      await addComment({
         postId,
         content: commentContent.trim(),
       });
@@ -113,8 +118,6 @@ export default function PostDetailPage({ params }) {
       toast.success("Comment added!");
     } catch (error) {
       toast.error(error.message || "Failed to add comment");
-    } finally {
-      setIsSubmittingComment(false);
     }
   };
 
@@ -129,7 +132,6 @@ export default function PostDetailPage({ params }) {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
-      {/* Header */}
       <PublicHeader link={`/${username}`} title="Back to Profile" />
 
       <div className="max-w-4xl mx-auto px-6 py-8">
@@ -148,13 +150,11 @@ export default function PostDetailPage({ params }) {
             </div>
           )}
 
-          {/* Post Header */}
           <div className="space-y-4">
             <h1 className="text-4xl md:text-5xl font-bold gradient-text-primary">
               {post.title}
             </h1>
 
-            {/* Author and Meta */}
             <div className="flex items-center justify-between">
               <Link href={`/${username}`}>
                 <div className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
@@ -173,6 +173,7 @@ export default function PostDetailPage({ params }) {
                       </div>
                     )}
                   </div>
+
                   <div>
                     <p className="font-semibold text-white">
                       {post.author.name}
@@ -200,7 +201,6 @@ export default function PostDetailPage({ params }) {
               </div>
             </div>
 
-            {/* Tags */}
             {post.tags && post.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {post.tags.map((tag) => (
@@ -222,7 +222,6 @@ export default function PostDetailPage({ params }) {
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
-          {/* Actions */}
           <div className="flex items-center gap-6 pt-4 border-t border-slate-800">
             <Button
               onClick={handleLikeToggle}
@@ -249,7 +248,6 @@ export default function PostDetailPage({ params }) {
         <div className="mt-12 space-y-6">
           <h2 className="text-2xl font-bold text-white">Comments</h2>
 
-          {/* Add Comment Form */}
           {currentUser ? (
             <Card className="card-glass">
               <CardContent className="p-6">
@@ -262,6 +260,7 @@ export default function PostDetailPage({ params }) {
                     rows={3}
                     maxLength={1000}
                   />
+
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-slate-500">
                       {commentContent.length}/1000 characters
@@ -295,12 +294,8 @@ export default function PostDetailPage({ params }) {
             </Card>
           )}
 
-          {/* Comments List */}
           {commentsLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-              <p className="text-slate-400">Loading comments...</p>
-            </div>
+            <BarLoader width={"100%"} color="#D8B4FE" />
           ) : comments && comments.length > 0 ? (
             <div className="space-y-4">
               {comments.map((comment) => (
@@ -323,6 +318,7 @@ export default function PostDetailPage({ params }) {
                             </div>
                           )}
                         </div>
+
                         <div>
                           <p className="font-medium text-white">
                             {comment.author?.name || "Anonymous"}
@@ -341,11 +337,11 @@ export default function PostDetailPage({ params }) {
                         </div>
                       </div>
 
-                      {/* Delete button for comment author or post author */}
-                      {currentUser &&
+                      {/* delete button */}
+                      {currentConvexUser &&
                         comment.author &&
-                        (currentUser.id === comment.authorId ||
-                          currentUser.id === post.authorId) && (
+                        (currentConvexUser._id === comment.authorId ||
+                          currentConvexUser._id === post.authorId) && (
                           <Button
                             onClick={() => handleDeleteComment(comment._id)}
                             variant="ghost"
@@ -451,4 +447,6 @@ export default function PostDetailPage({ params }) {
       `}</style>
     </div>
   );
-}
+};
+
+export default PostPage;
