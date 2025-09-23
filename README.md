@@ -1,5 +1,5 @@
 # Full Stack AI Content Platform with Next JS, Tailwind, React Quill, ImageKit, Shadcn UI Tutorial 🔥🔥
-## Work in Progress
+## https://www.youtube.com/watch?v=pyEmZ6WqE5c
 <img width="1280" height="720" alt="creatr" src="https://github.com/user-attachments/assets/721c2fa0-d628-4dbf-af6e-642419774bee" />
 
 ### Make sure to create a `.env` file with following variables -
