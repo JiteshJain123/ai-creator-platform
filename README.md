@@ -8,9 +8,8 @@ It allows users to write, publish, and manage content with the help of integrate
 
 ## 🔗 Live Site & Repository
 
-🌐 **Live Demo**: `[[YOUR_LIVE_DEMO_URL](https://ai-creator-platform-topaz.vercel.app/)]`
-<br>
-📁 **GitHub Repo**: `[[YOUR_GITHUB_REPO_URL](https://github.com/JiteshJain123/ai-creator-platform/tree/main)]`
+🌐 **Live Demo**: [https://ai-creator-platform-topaz.vercel.app/] 
+📁 **GitHub Repo**: [https://github.com/JiteshJain123/ai-creator-platform]
 
 ---
 
