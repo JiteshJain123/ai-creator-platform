@@ -1,3 +1,5 @@
+// convex/schema.js
+
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
@@ -7,7 +9,8 @@ export default defineSchema({
     // Basic user info from Clerk
     name: v.string(),
     email: v.string(),
-    tokenIdentifier: v.string(), // Clerk user ID for auth
+    tokenIdentifier: v.string(), // Kept for legacy/auth purposes
+    clerkId: v.string(), // <-- 💡 ADDED THIS LINE: The main Clerk User ID
     imageUrl: v.optional(v.string()), // Profile picture
     username: v.optional(v.string()), // Unique username for public profiles
 
@@ -15,10 +18,11 @@ export default defineSchema({
     createdAt: v.number(),
     lastActiveAt: v.number(),
   })
-    .index("by_token", ["tokenIdentifier"]) // Primary auth lookup
-    .index("by_email", ["email"]) // Email lookups
-    .index("by_username", ["username"]) // Username lookup for public profiles
-    .searchIndex("search_name", { searchField: "name" }) // User search
+    .index("by_token", ["tokenIdentifier"])
+    .index("by_clerk_id", ["clerkId"]) // <-- 💡 ADDED THIS INDEX
+    .index("by_email", ["email"])
+    .index("by_username", ["username"])
+    .searchIndex("search_name", { searchField: "name" })
     .searchIndex("search_email", { searchField: "email" }),
 
   // Posts/Articles - Main content
@@ -26,22 +30,14 @@ export default defineSchema({
     title: v.string(),
     content: v.string(), // Rich text content (JSON string or HTML)
     status: v.union(v.literal("draft"), v.literal("published")),
-
-    // Author relationship
     authorId: v.id("users"),
-
-    // Content metadata
     tags: v.array(v.string()),
     category: v.optional(v.string()), // Single category
     featuredImage: v.optional(v.string()), // ImageKit URL
-
-    // Timestamps
     createdAt: v.number(),
     updatedAt: v.number(),
     publishedAt: v.optional(v.number()),
     scheduledFor: v.optional(v.number()), // For scheduled publishing
-
-    // Analytics
     viewCount: v.number(),
     likeCount: v.number(),
   })
@@ -57,14 +53,12 @@ export default defineSchema({
     authorId: v.optional(v.id("users")), // Optional for anonymous comments
     authorName: v.string(), // For anonymous or display name
     authorEmail: v.optional(v.string()), // For anonymous comments
-
     content: v.string(),
     status: v.union(
       v.literal("approved"),
       v.literal("pending"),
       v.literal("rejected")
     ),
-
     createdAt: v.number(),
   })
     .index("by_post", ["postId"])
@@ -75,7 +69,6 @@ export default defineSchema({
   likes: defineTable({
     postId: v.id("posts"),
     userId: v.optional(v.id("users")), // Optional for anonymous likes
-
     createdAt: v.number(),
   })
     .index("by_post", ["postId"])
@@ -86,7 +79,6 @@ export default defineSchema({
   follows: defineTable({
     followerId: v.id("users"), // User doing the following
     followingId: v.id("users"), // User being followed
-
     createdAt: v.number(),
   })
     .index("by_follower", ["followerId"])
@@ -98,7 +90,6 @@ export default defineSchema({
     postId: v.id("posts"),
     date: v.string(), // YYYY-MM-DD format for easy querying
     views: v.number(),
-
     createdAt: v.number(),
     updatedAt: v.number(),
   })

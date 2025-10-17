@@ -1,7 +1,18 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-// Toggle follow/unfollow a user
+// 💡 Helper function to get the current user by their Clerk ID
+const getUserByClerkId = async (ctx) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    return null; // Return null instead of throwing for queries
+  }
+  return await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+    .unique();
+};
+
 export const toggleFollow = mutation({
   args: { followingId: v.id("users") },
   handler: async (ctx, args) => {
@@ -12,35 +23,28 @@ export const toggleFollow = mutation({
 
     const follower = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("tokenIdentifier"), identity.tokenIdentifier))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .unique();
 
     if (!follower) {
       throw new Error("User not found");
     }
 
-    // Can't follow yourself
     if (follower._id === args.followingId) {
       throw new Error("You cannot follow yourself");
     }
 
-    // Check if already following
     const existingFollow = await ctx.db
       .query("follows")
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("followerId"), follower._id),
-          q.eq(q.field("followingId"), args.followingId)
-        )
+      .withIndex("by_relationship", (q) =>
+        q.eq("followerId", follower._id).eq("followingId", args.followingId)
       )
       .unique();
 
     if (existingFollow) {
-      // Unfollow
       await ctx.db.delete(existingFollow._id);
       return { following: false };
     } else {
-      // Follow
       await ctx.db.insert("follows", {
         followerId: follower._id,
         followingId: args.followingId,
@@ -51,31 +55,18 @@ export const toggleFollow = mutation({
   },
 });
 
-// Check if current user is following a specific user
 export const isFollowing = query({
   args: { followingId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return false;
-    }
-
-    const follower = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("tokenIdentifier"), identity.tokenIdentifier))
-      .unique();
-
-    if (!follower) {
+    const follower = await getUserByClerkId(ctx);
+    if (!follower || !args.followingId) {
       return false;
     }
 
     const follow = await ctx.db
       .query("follows")
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("followerId"), follower._id),
-          q.eq(q.field("followingId"), args.followingId)
-        )
+      .withIndex("by_relationship", (q) =>
+        q.eq("followerId", follower._id).eq("followingId", args.followingId)
       )
       .unique();
 

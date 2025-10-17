@@ -1,5 +1,25 @@
+// convex/users.js
+
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+
+// 💡 Helper function to get the current user by their Clerk ID (identity.subject)
+const getUserByClerkId = async (ctx) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject)) // Using the new index
+    .unique();
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+  return user;
+};
 
 export const store = mutation({
   args: {},
@@ -9,18 +29,19 @@ export const store = mutation({
       throw new Error("Called storeUser without authentication present");
     }
 
-    // Check if we've already stored this identity before
+    // Check if we've already stored this identity before using the reliable Clerk ID
     const user = await ctx.db
       .query("users")
-      .withIndex("by_token", (q) =>
-        q.eq("tokenIdentifier", identity.tokenIdentifier)
-      )
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .unique();
 
     if (user !== null) {
-      // If we've seen this identity before but the name has changed, patch the value.
-      if (user.name !== identity.name) {
-        await ctx.db.patch(user._id, { name: identity.name });
+      // If we've seen this identity before but the name/image has changed, patch the value.
+      if (user.name !== identity.name || user.imageUrl !== identity.pictureUrl) {
+        await ctx.db.patch(user._id, {
+          name: identity.name,
+          imageUrl: identity.pictureUrl,
+        });
       }
       return user._id;
     }
@@ -28,9 +49,11 @@ export const store = mutation({
     // If it's a new identity, create a new `User`.
     return await ctx.db.insert("users", {
       name: identity.name ?? "Anonymous",
-      tokenIdentifier: identity.tokenIdentifier,
-      email: identity.email,
+      // --- 💡 FIX: Replaced TypeScript '!' with JavaScript '?? ""' ---
+      email: identity.email ?? "",
       imageUrl: identity.pictureUrl,
+      tokenIdentifier: identity.tokenIdentifier, // Still useful for Clerk webhooks
+      clerkId: identity.subject, // <-- 💡 THE CRUCIAL FIX: Store the Clerk User ID
       createdAt: Date.now(),
       lastActiveAt: Date.now(),
     });
@@ -39,48 +62,16 @@ export const store = mutation({
 
 export const getCurrentUser = query({
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_token", (q) =>
-        q.eq("tokenIdentifier", identity.tokenIdentifier)
-      )
-      .unique();
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    return user;
+    return await getUserByClerkId(ctx);
   },
 });
 
-// Update username (checks availability and updates)
 export const updateUsername = mutation({
   args: {
     username: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    // Get current user
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_token", (q) =>
-        q.eq("tokenIdentifier", identity.tokenIdentifier)
-      )
-      .unique();
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await getUserByClerkId(ctx); // Use helper function
 
     // Validate username format
     const usernameRegex = /^[a-zA-Z0-9_-]+$/;
@@ -89,12 +80,11 @@ export const updateUsername = mutation({
         "Username can only contain letters, numbers, underscores, and hyphens"
       );
     }
-
     if (args.username.length < 3 || args.username.length > 20) {
       throw new Error("Username must be between 3 and 20 characters");
     }
 
-    // Check if username is already taken (skip check if it's the same as current)
+    // Check if username is already taken
     if (args.username !== user.username) {
       const existingUser = await ctx.db
         .query("users")
@@ -106,7 +96,6 @@ export const updateUsername = mutation({
       }
     }
 
-    // Update username
     await ctx.db.patch(user._id, {
       username: args.username,
       lastActiveAt: Date.now(),
@@ -116,7 +105,6 @@ export const updateUsername = mutation({
   },
 });
 
-// Get user by username (for public profiles)
 export const getByUsername = query({
   args: { username: v.string() },
   handler: async (ctx, args) => {
@@ -126,20 +114,21 @@ export const getByUsername = query({
 
     const user = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("username"), args.username))
+      .withIndex("by_username", (q) => q.eq("username", args.username))
       .unique();
 
     if (!user) {
       return null;
     }
 
-    // Return only public fields
+    // <-- 💡 THE SECOND CRUCIAL FIX: Return the clerkId to the frontend
     return {
       _id: user._id,
       name: user.name,
       username: user.username,
       imageUrl: user.imageUrl,
       createdAt: user.createdAt,
+      clerkId: user.clerkId, // Now the frontend can perform the check correctly
     };
   },
 });
