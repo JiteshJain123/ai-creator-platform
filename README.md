@@ -1,8 +1,11 @@
-Creatr
-Creatr is a modern, full-stack AI-powered content creation platform designed for writers and creators. Built with Next.js, Convex, and Clerk, it provides a seamless experience for publishing articles, managing a following, and tracking content performance. The platform's core strength lies in its integrated AI tools, which assist creators in generating, refining, and enhancing their content from idea to publication.
+🤖 Creatr
+This is an AI-powered content creation platform built using Next.js, Convex, and Clerk.
+
+It allows users to write, publish, and manage content with the help of integrated AI tools for generation, refinement, and image transformation.
 
 🔗 Live Site & Repository
 🌐 Live Demo: [YOUR_LIVE_DEMO_URL]
+
 
 📁 GitHub Repo: [YOUR_GITHUB_REPO_URL]
 
@@ -18,49 +21,21 @@ Tailwind CSS
 Vercel
 
 🚀 Core Features
-Analytics Dashboard: Track total views, likes, comments, and follower growth with a visual overview and charts.
+Full post management (Create, Read, Update, Delete)
 
-Full Post Management: Create, edit, publish, and manage all your articles from a central "My Posts" page.
+Analytics dashboard for views, likes, and followers
 
-Rich Text Editor: A complete WYSIWYG editor to easily format your content.
+Secure user authentication and profile management via Clerk
 
-Social Connections: Follow other creators and manage your own list of followers and following.
+Follower/Following social system
 
-Custom User Profiles: Set a unique username and manage your account preferences in the settings page.
+Rich text editor for content creation
 
-Secure Authentication: User sign-up, sign-in, and profile management are handled securely by Clerk.
-
-Search & Filtering: Easily find posts in your library by title or publication status.
+Custom user profiles and settings
 
 🤖 AI-Powered Features
-AI Content Generation: Generate post titles and story ideas directly within the editor to overcome writer's block.
+AI content and title generation to overcome writer's block
 
-Content Refinement Tools: Enhance, simplify, or expand your written text with a single click using powerful AI models.
+Enhance, simplify, and expand text with integrated AI tools
 
-AI Image Transformation: Upload a featured image for your post and transform it using AI to create unique visuals.
-
-```
-# Deployment used by `npx convex dev`
-CONVEX_DEPLOYMENT=
-
-NEXT_PUBLIC_CONVEX_URL=
-
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
-
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-
-CLERK_JWT_ISSUER_DOMAIN=
-
-# Imagekit
-NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=
-NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT=
-IMAGEKIT_PRIVATE_KEY=
-
-# Unsplash
-NEXT_PUBLIC_UNSPLASH_ACCESS_KEY=
-
-#Gemini
-GEMINI_API_KEY=
-```
+AI transformation for featured images to create unique visuals
