@@ -2,18 +2,20 @@ Creatr
 Creatr is a modern, full-stack AI-powered content creation platform designed for writers and creators. Built with Next.js, Convex, and Clerk, it provides a seamless experience for publishing articles, managing a following, and tracking content performance. The platform's core strength lies in its integrated AI tools, which assist creators in generating, refining, and enhancing their content from idea to publication.
 
 🔗 Live Site & Repository
-🌐 Live Demo: [YOUR_LIVE_DEMO_URL] <br /> 📁 GitHub Repo: [YOUR_GITHUB_REPO_URL]
+🌐 Live Demo: [YOUR_LIVE_DEMO_URL]
+
+📁 GitHub Repo: [YOUR_GITHUB_REPO_URL]
 
 ⚙️ Tech Stack
-Framework: Next.js
+Next.js
 
-Backend & Database: Convex
+Convex
 
-Authentication: Clerk
+Clerk
 
-Styling: Tailwind CSS (assumed from design)
+Tailwind CSS
 
-Deployment: Vercel (assumed)
+Vercel
 
 🚀 Core Features
 Analytics Dashboard: Track total views, likes, comments, and follower growth with a visual overview and charts.
