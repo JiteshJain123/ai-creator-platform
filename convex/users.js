@@ -108,27 +108,43 @@ export const updateUsername = mutation({
 export const getByUsername = query({
   args: { username: v.string() },
   handler: async (ctx, args) => {
-    if (!args.username) {
-      return null;
-    }
+    if (!args.username) return null;
 
     const user = await ctx.db
       .query("users")
       .withIndex("by_username", (q) => q.eq("username", args.username))
       .unique();
 
-    if (!user) {
-      return null;
-    }
+    if (!user) return null;
 
-    // <-- 💡 THE SECOND CRUCIAL FIX: Return the clerkId to the frontend
+    // Enrich with follower/following/post counts
+    const [followerRows, followingRows, postRows] = await Promise.all([
+      ctx.db.query("follows").withIndex("by_following", (q) => q.eq("followingId", user._id)).collect(),
+      ctx.db.query("follows").withIndex("by_follower",  (q) => q.eq("followerId",  user._id)).collect(),
+      ctx.db.query("posts").withIndex("by_author_status", (q) => q.eq("authorId", user._id).eq("status", "published")).collect(),
+    ]);
+
     return {
       _id: user._id,
       name: user.name,
       username: user.username,
       imageUrl: user.imageUrl,
+      bio: user.bio ?? null,
       createdAt: user.createdAt,
-      clerkId: user.clerkId, // Now the frontend can perform the check correctly
+      clerkId: user.clerkId,
+      followerCount: followerRows.length,
+      followingCount: followingRows.length,
+      postCount: postRows.length,
     };
+  },
+});
+
+export const updateBio = mutation({
+  args: { bio: v.string() },
+  handler: async (ctx, args) => {
+    const user = await getUserByClerkId(ctx);
+    if (args.bio.length > 200) throw new Error("Bio must be 200 characters or less");
+    await ctx.db.patch(user._id, { bio: args.bio, lastActiveAt: Date.now() });
+    return user._id;
   },
 });

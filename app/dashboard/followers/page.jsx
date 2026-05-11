@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { UserPlus, UserMinus, Search, Loader2 } from "lucide-react";
+import { UserPlus, UserMinus, Search, Loader2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -170,8 +170,26 @@ const FollowersPage = () => {
         </TabsList>
 
         {/* Followers Tab */}
-        <TabsContent value="followers" className="mt-6">
-          {filteredFollowers.map((user) => (
+        <TabsContent value="followers" className="mt-6 space-y-3">
+          {followersLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg animate-pulse">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-700" />
+                  <div className="space-y-2">
+                    <div className="h-3 w-28 bg-slate-700 rounded" />
+                    <div className="h-2 w-20 bg-slate-700/70 rounded" />
+                  </div>
+                </div>
+                <div className="h-8 w-24 bg-slate-700 rounded-md" />
+              </div>
+            ))
+          ) : filteredFollowers.length === 0 ? (
+            <div className="text-center py-12 space-y-3">
+              <Users className="h-10 w-10 text-slate-600 mx-auto" />
+              <p className="text-slate-400">No followers yet</p>
+            </div>
+          ) : filteredFollowers.map((user) => (
             <UserCard
               key={user._id}
               user={user}
@@ -183,8 +201,26 @@ const FollowersPage = () => {
         </TabsContent>
 
         {/* Following Tab */}
-        <TabsContent value="following" className="mt-6">
-          {filteredFollowing.map((user) => (
+        <TabsContent value="following" className="mt-6 space-y-3">
+          {followingLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg animate-pulse">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-700" />
+                  <div className="space-y-2">
+                    <div className="h-3 w-28 bg-slate-700 rounded" />
+                    <div className="h-2 w-20 bg-slate-700/70 rounded" />
+                  </div>
+                </div>
+                <div className="h-8 w-20 bg-slate-700 rounded-md" />
+              </div>
+            ))
+          ) : filteredFollowing.length === 0 ? (
+            <div className="text-center py-12 space-y-3">
+              <Users className="h-10 w-10 text-slate-600 mx-auto" />
+              <p className="text-slate-400">Not following anyone yet</p>
+            </div>
+          ) : filteredFollowing.map((user) => (
             <UserCard
               key={user._id}
               user={user}

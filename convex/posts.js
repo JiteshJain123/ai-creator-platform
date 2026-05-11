@@ -86,6 +86,7 @@ export const create = mutation({
       scheduledFor: args.scheduledFor,
       viewCount: 0,
       likeCount: 0,
+      commentCount: 0,
     });
 
     return postId;
@@ -238,6 +239,74 @@ export const getById = query({
   args: { id: v.id("posts") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
+  },
+});
+
+// Duplicate a post as a new draft
+export const duplicatePost = mutation({
+  args: { id: v.id("posts") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("tokenIdentifier"), identity.tokenIdentifier))
+      .unique();
+    if (!user) throw new Error("User not found");
+
+    const original = await ctx.db.get(args.id);
+    if (!original) throw new Error("Post not found");
+    if (original.authorId !== user._id) throw new Error("Not authorized");
+
+    const now = Date.now();
+    const newId = await ctx.db.insert("posts", {
+      title: `Copy of ${original.title}`,
+      content: original.content,
+      status: "draft",
+      authorId: user._id,
+      tags: original.tags ?? [],
+      category: original.category,
+      featuredImage: original.featuredImage,
+      createdAt: now,
+      updatedAt: now,
+      publishedAt: undefined,
+      scheduledFor: undefined,
+      viewCount: 0,
+      likeCount: 0,
+      commentCount: 0,
+    });
+
+    return newId;
+  },
+});
+
+// Search published posts by title
+export const searchPosts = query({
+  args: { query: v.string(), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    if (!args.query.trim()) return [];
+
+    const posts = await ctx.db
+      .query("posts")
+      .withSearchIndex("search_content", (q) => q.search("title", args.query))
+      .filter((q) => q.eq(q.field("status"), "published"))
+      .take(args.limit || 20);
+
+    const postsWithAuthors = await Promise.all(
+      posts.map(async (post) => {
+        const author = await ctx.db.get(post.authorId);
+        return {
+          ...post,
+          commentCount: post.commentCount ?? 0,
+          author: author
+            ? { _id: author._id, name: author.name, username: author.username, imageUrl: author.imageUrl }
+            : null,
+        };
+      })
+    );
+
+    return postsWithAuthors.filter((p) => p.author !== null);
   },
 });
 

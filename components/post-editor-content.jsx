@@ -3,10 +3,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ImageIcon, Sparkles, Wand2, Plus, Minus } from "lucide-react";
+import { ImageIcon, Sparkles, Wand2, Plus, Minus, Lightbulb, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
-import { generateBlogContent, improveContent } from "@/app/actions/gemini";
+import { generateBlogContent, improveContent, generateTitleSuggestions } from "@/app/actions/gemini";
 import { BarLoader } from "react-spinners";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -70,6 +70,14 @@ export default function PostEditorContent({
   const watchedValues = watch();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
+  const [isSuggestingTitles, setIsSuggestingTitles] = useState(false);
+  const [titleSuggestions, setTitleSuggestions] = useState([]);
+
+  // Derived stats
+  const wordCount = watchedValues.content
+    ? watchedValues.content.replace(/<[^>]+>/g, " ").trim().split(/\s+/).filter(Boolean).length
+    : 0;
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
   const getQuillModules = () => ({
     ...quillConfig.modules,
@@ -117,6 +125,18 @@ export default function PostEditorContent({
     } finally {
       type === "generate" ? setIsGenerating(false) : setIsImproving(false);
     }
+  };
+
+  const handleSuggestTitles = async () => {
+    const topic = watchedValues.title?.trim() || watchedValues.content?.replace(/<[^>]+>/g, " ").substring(0, 100);
+    if (!topic) { toast.error("Add a title or some content first"); return; }
+    setIsSuggestingTitles(true);
+    try {
+      const result = await generateTitleSuggestions(topic, watchedValues.category);
+      if (result.success) { setTitleSuggestions(result.titles); }
+      else { toast.error(result.error); }
+    } catch { toast.error("Failed to generate titles"); }
+    finally { setIsSuggestingTitles(false); }
   };
 
   const hasTitle = watchedValues.title?.trim();
@@ -177,8 +197,47 @@ export default function PostEditorContent({
               className="border-0 text-4xl font-bold bg-transparent placeholder:text-slate-500 text-white p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
               style={{ fontSize: "2.5rem", lineHeight: "1.2" }}
             />
-            {errors.title && (
-              <p className="text-red-400 mt-2">{errors.title.message}</p>
+            <div className="flex items-center justify-between mt-1">
+              {errors.title ? (
+                <p className="text-red-400 text-sm">{errors.title.message}</p>
+              ) : (
+                <span />
+              )}
+              <button
+                type="button"
+                onClick={handleSuggestTitles}
+                disabled={isSuggestingTitles}
+                className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 disabled:opacity-50 transition-colors"
+              >
+                {isSuggestingTitles
+                  ? <Loader2 className="h-3 w-3 animate-spin" />
+                  : <Lightbulb className="h-3 w-3" />}
+                AI title ideas
+              </button>
+            </div>
+
+            {/* Title suggestions dropdown */}
+            {titleSuggestions.length > 0 && (
+              <div className="mt-2 space-y-1 p-3 bg-slate-800/80 border border-purple-500/30 rounded-xl">
+                <p className="text-xs text-slate-400 mb-2">Click a suggestion to use it:</p>
+                {titleSuggestions.map((title, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => { setValue("title", title); setTitleSuggestions([]); }}
+                    className="w-full text-left text-sm text-slate-200 hover:text-white hover:bg-purple-500/20 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    {title}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setTitleSuggestions([])}
+                  className="text-xs text-slate-500 hover:text-slate-300 mt-1 px-3"
+                >
+                  Dismiss
+                </button>
+              </div>
             )}
           </div>
 
@@ -246,6 +305,12 @@ export default function PostEditorContent({
             {errors.content && (
               <p className="text-red-400 mt-2">{errors.content.message}</p>
             )}
+          </div>
+
+          {/* Word count bar */}
+          <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-800">
+            <span>{wordCount.toLocaleString()} words</span>
+            <span>{readTime} min read</span>
           </div>
         </div>
       </main>

@@ -20,6 +20,9 @@ import {
   Calendar,
   BarChart3,
   Loader2,
+  Bookmark,
+  Bell,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/convex/_generated/api";
@@ -95,83 +98,91 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="card-glass">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 stagger-children">
+        {/* Views */}
+        <Card className="card-glass stat-card-blue transition-all duration-300 animate-fade-in-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-slate-300">
-              Total Views
-            </CardTitle>
-            <Eye className="h-4 w-4 text-blue-400" />
+            <CardTitle className="text-sm font-medium text-slate-300">Total Views</CardTitle>
+            <div className="p-2 rounded-lg bg-blue-500/10">
+              <Eye className="h-4 w-4 text-blue-400 icon-glow-blue" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-3xl font-bold text-white">
               {stats.totalViews.toLocaleString()}
             </div>
-            {stats.viewsGrowth > 0 && (
+            {stats.viewsGrowth > 0 ? (
               <div className="flex items-center text-xs text-green-400 mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />+{stats.viewsGrowth}%
-                from last month
+                <TrendingUp className="h-3 w-3 mr-1" />+{stats.viewsGrowth}% from last month
               </div>
+            ) : (
+              <div className="text-xs text-slate-500 mt-1">All time views</div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="card-glass">
+        {/* Likes */}
+        <Card className="card-glass stat-card-red transition-all duration-300 animate-fade-in-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-slate-300">
-              Total Likes
-            </CardTitle>
-            <Heart className="h-4 w-4 text-red-400" />
+            <CardTitle className="text-sm font-medium text-slate-300">Total Likes</CardTitle>
+            <div className="p-2 rounded-lg bg-red-500/10">
+              <Heart className="h-4 w-4 text-red-400 icon-glow-red" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-3xl font-bold text-white">
               {stats.totalLikes.toLocaleString()}
             </div>
-            {stats.likesGrowth > 0 && (
+            {stats.likesGrowth > 0 ? (
               <div className="flex items-center text-xs text-green-400 mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />+{stats.likesGrowth}%
-                from last month
+                <TrendingUp className="h-3 w-3 mr-1" />+{stats.likesGrowth}% from last month
               </div>
+            ) : (
+              <div className="text-xs text-slate-500 mt-1">Reactions received</div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="card-glass">
+        {/* Comments */}
+        <Card className="card-glass stat-card-amber transition-all duration-300 animate-fade-in-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-slate-300">
-              Comments
-            </CardTitle>
-            <MessageCircle className="h-4 w-4 text-yellow-400" />
+            <CardTitle className="text-sm font-medium text-slate-300">Comments</CardTitle>
+            <div className="p-2 rounded-lg bg-amber-500/10">
+              <MessageCircle className="h-4 w-4 text-amber-400 icon-glow-amber" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-3xl font-bold text-white">
               {stats.totalComments.toLocaleString()}
             </div>
-            {stats.commentsGrowth > 0 && (
+            {stats.commentsGrowth > 0 ? (
               <div className="flex items-center text-xs text-green-400 mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />+{stats.commentsGrowth}%
-                from last month
+                <TrendingUp className="h-3 w-3 mr-1" />+{stats.commentsGrowth}% from last month
               </div>
+            ) : (
+              <div className="text-xs text-slate-500 mt-1">Reader discussions</div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="card-glass">
+        {/* Followers */}
+        <Card className="card-glass stat-card-green transition-all duration-300 animate-fade-in-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-slate-300">
-              Followers
-            </CardTitle>
-            <Users className="h-4 w-4 text-green-400" />
+            <CardTitle className="text-sm font-medium text-slate-300">Followers</CardTitle>
+            <div className="p-2 rounded-lg bg-green-500/10">
+              <Users className="h-4 w-4 text-green-400 icon-glow-green" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-3xl font-bold text-white">
               {stats.totalFollowers.toLocaleString()}
             </div>
-            {stats.followersGrowth > 0 && (
+            {stats.followersGrowth > 0 ? (
               <div className="flex items-center text-xs text-green-400 mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />+{stats.followersGrowth}%
-                from last month
+                <TrendingUp className="h-3 w-3 mr-1" />+{stats.followersGrowth}% from last month
               </div>
+            ) : (
+              <div className="text-xs text-slate-500 mt-1">Growing audience</div>
             )}
           </CardContent>
         </Card>
@@ -363,36 +374,25 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="text-white">Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Link href="/dashboard/create">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700/50"
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Create New Post
-                </Button>
-              </Link>
-
-              <Link href="/dashboard/posts">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700/50"
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Manage Posts
-                </Button>
-              </Link>
-
-              <Link href="/dashboard/followers">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700/50"
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  View Followers
-                </Button>
-              </Link>
+            <CardContent className="space-y-2">
+              {[
+                { href: "/dashboard/create",        icon: PlusCircle,    label: "Create New Post",    color: "text-purple-400"  },
+                { href: "/dashboard/posts",          icon: Calendar,      label: "Manage Posts",       color: "text-blue-400"    },
+                { href: "/dashboard/bookmarks",      icon: Bookmark,      label: "Saved Bookmarks",    color: "text-amber-400"   },
+                { href: "/dashboard/followers",      icon: Users,         label: "View Followers",     color: "text-green-400"   },
+                { href: "/dashboard/notifications",  icon: Bell,          label: "Notifications",      color: "text-red-400"     },
+                { href: "/search",                   icon: Search,        label: "Search Posts",       color: "text-cyan-400"    },
+              ].map(({ href, icon: Icon, label, color }) => (
+                <Link href={href} key={href}>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700/50 h-10"
+                  >
+                    <Icon className={`h-4 w-4 mr-2.5 ${color}`} />
+                    {label}
+                  </Button>
+                </Link>
+              ))}
             </CardContent>
           </Card>
         </div>

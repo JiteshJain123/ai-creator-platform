@@ -13,6 +13,7 @@ export default defineSchema({
     clerkId: v.string(), // <-- 💡 ADDED THIS LINE: The main Clerk User ID
     imageUrl: v.optional(v.string()), // Profile picture
     username: v.optional(v.string()), // Unique username for public profiles
+    bio: v.optional(v.string()), // Short creator bio
 
     // Activity timestamps
     createdAt: v.number(),
@@ -40,6 +41,7 @@ export default defineSchema({
     scheduledFor: v.optional(v.number()), // For scheduled publishing
     viewCount: v.number(),
     likeCount: v.number(),
+    commentCount: v.optional(v.number()), // Denormalized for fast reads
   })
     .index("by_author", ["authorId"])
     .index("by_status", ["status"])
@@ -84,6 +86,31 @@ export default defineSchema({
     .index("by_follower", ["followerId"])
     .index("by_following", ["followingId"])
     .index("by_relationship", ["followerId", "followingId"]), // Prevent duplicates
+
+  // Bookmarks — saved posts
+  bookmarks: defineTable({
+    userId: v.id("users"),
+    postId: v.id("posts"),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_post", ["postId"])
+    .index("by_user_post", ["userId", "postId"]),
+
+  // Notifications system
+  notifications: defineTable({
+    userId: v.id("users"),             // recipient
+    actorId: v.id("users"),            // who triggered it
+    actorName: v.string(),
+    actorImage: v.optional(v.string()),
+    type: v.union(v.literal("like"), v.literal("comment"), v.literal("follow")),
+    postId: v.optional(v.id("posts")),
+    postTitle: v.optional(v.string()),
+    isRead: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_read", ["userId", "isRead"]),
 
   // Daily analytics tracking
   dailyStats: defineTable({

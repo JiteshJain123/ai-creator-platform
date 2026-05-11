@@ -23,6 +23,7 @@ export const getFeed = query({
         const author = await ctx.db.get(post.authorId);
         return {
           ...post,
+          commentCount: post.commentCount ?? 0,
           author: author
             ? {
                 _id: author._id,
@@ -184,6 +185,7 @@ export const getTrendingPosts = query({
         const author = await ctx.db.get(post.authorId);
         return {
           ...post,
+          commentCount: post.commentCount ?? 0,
           author: author
             ? {
                 _id: author._id,
@@ -197,5 +199,36 @@ export const getTrendingPosts = query({
     );
 
     return postsWithAuthors.filter((post) => post.author !== null);
+  },
+});
+
+// Get trending tags from recent published posts
+export const getTrendingTags = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const limit = args.limit || 12;
+    const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+
+    const recentPosts = await ctx.db
+      .query("posts")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("status"), "published"),
+          q.gte(q.field("publishedAt"), monthAgo)
+        )
+      )
+      .collect();
+
+    const tagCounts = {};
+    for (const post of recentPosts) {
+      for (const tag of post.tags ?? []) {
+        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+      }
+    }
+
+    return Object.entries(tagCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, limit)
+      .map(([tag, count]) => ({ tag, count }));
   },
 });

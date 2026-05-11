@@ -11,6 +11,9 @@ import {
   Menu,
   X,
   Settings,
+  Bookmark,
+  Bell,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,28 +22,16 @@ import { cn } from "@/lib/utils";
 import { api } from "@/convex/_generated/api";
 import { useConvexQuery } from "@/hooks/use-convex-query";
 import Image from "next/image";
+import ScrollToTop from "@/components/scroll-to-top";
+import NotificationBell from "@/components/notification-bell";
 
 const sidebarItems = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Create Post",
-    href: "/dashboard/create",
-    icon: PenTool,
-  },
-  {
-    title: "My Posts",
-    href: "/dashboard/posts",
-    icon: FileText,
-  },
-  {
-    title: "Followers",
-    href: "/dashboard/followers",
-    icon: Users,
-  },
+  { title: "Dashboard",      href: "/dashboard",               icon: LayoutDashboard },
+  { title: "Create Post",    href: "/dashboard/create",        icon: PenTool         },
+  { title: "My Posts",       href: "/dashboard/posts",         icon: FileText        },
+  { title: "Bookmarks",      href: "/dashboard/bookmarks",     icon: Bookmark        },
+  { title: "Followers",      href: "/dashboard/followers",     icon: Users           },
+  { title: "Notifications",  href: "/dashboard/notifications", icon: Bell            },
 ];
 
 export default function DashboardLayout({ children }) {
@@ -49,6 +40,8 @@ export default function DashboardLayout({ children }) {
 
   // Get draft info for badge
   const { data: draftPost } = useConvexQuery(api.posts.getUserDraft);
+  // Get unread notification count
+  const { data: unreadCount = 0 } = useConvexQuery(api.notifications.getUnreadCount);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -125,12 +118,16 @@ export default function DashboardLayout({ children }) {
 
                   {/* Badge for Create Post if draft exists */}
                   {item.title === "Create Post" && draftPost && (
-                    <Badge
-                      variant="secondary"
-                      className="ml-auto text-xs bg-orange-500/20 text-orange-300 border-orange-500/30"
-                    >
+                    <Badge variant="secondary" className="ml-auto text-xs bg-orange-500/20 text-orange-300 border-orange-500/30">
                       Draft
                     </Badge>
+                  )}
+
+                  {/* Badge for unread notifications */}
+                  {item.title === "Notifications" && unreadCount > 0 && (
+                    <span className="ml-auto w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
                   )}
                 </div>
               </Link>
@@ -156,10 +153,7 @@ export default function DashboardLayout({ children }) {
       {/* Main Content */}
       <div className="ml-0 lg:ml-64">
         {/* Top Header */}
-        <header
-          className="fixed w-full top-0 right-0 z-30 bg-slate-800/80 backdrop-blur-md border-b border-slate-700"
-          // style={{ left: "auto", width: "calc(100% - 16rem)" }}
-        >
+        <header className="fixed top-0 left-0 lg:left-64 right-0 z-30 bg-slate-800/80 backdrop-blur-md border-b border-slate-700">
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
             {/* Left Side - Mobile Menu + Search */}
             <div className="flex items-center space-x-4">
@@ -174,8 +168,19 @@ export default function DashboardLayout({ children }) {
               </Button>
             </div>
 
-            {/* Right Side - Notifications + User */}
-            <div className="flex items-center space-x-4">
+            {/* Right Side - Search + Notifications + User */}
+            <div className="flex items-center space-x-2">
+              {/* Search link */}
+              <Link
+                href="/search"
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all"
+              >
+                <Search className="h-5 w-5" />
+              </Link>
+
+              {/* Notification Bell */}
+              <NotificationBell />
+
               {/* User Button */}
               <UserButton
                 appearance={{
@@ -194,6 +199,7 @@ export default function DashboardLayout({ children }) {
 
         {/* Page Content */}
         <main className="mt-16">{children}</main>
+        <ScrollToTop />
       </div>
     </div>
   );

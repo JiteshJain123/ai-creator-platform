@@ -40,6 +40,7 @@ export const getPublishedPostsByUsername = query({
     const postsWithAuthor = await Promise.all(
       finalPosts.map(async (post) => ({
         ...post,
+        commentCount: post.commentCount ?? 0,
         author: {
           _id: user._id,
           name: user.name,

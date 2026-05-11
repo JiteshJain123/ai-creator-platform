@@ -33,7 +33,7 @@ export default function RootLayout({ children }) {
       <head>{/* <link rel="icon" href="/logo-text.png" sizes="any" /> */}</head>
 
       <body
-
+        suppressHydrationWarning={true}
         className="font-sans bg-slate-900 text-white overflow-x-hidden min-h-screen"
 
         style={{

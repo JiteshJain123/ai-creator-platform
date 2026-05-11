@@ -28,6 +28,7 @@ export default function PostsPage() {
   // Data fetching
   const { data: posts, isLoading } = useConvexQuery(api.posts.getUserPosts);
   const deletePost = useConvexMutation(api.posts.deletePost);
+  const { mutate: duplicatePost } = useConvexMutation(api.posts.duplicatePost);
 
   // Filter and sort posts
   const filteredPosts = React.useMemo(() => {
@@ -85,9 +86,14 @@ export default function PostsPage() {
     }
   };
 
-  const handleDuplicatePost = (post) => {
-    // TODO: Implement post duplication
-    toast.info("Duplication feature coming soon!");
+  const handleDuplicatePost = async (post) => {
+    try {
+      const newId = await duplicatePost({ id: post._id });
+      toast.success("Post duplicated as draft!");
+      router.push(`/dashboard/posts/edit/${newId}`);
+    } catch (error) {
+      toast.error(error.message || "Failed to duplicate post");
+    }
   };
 
   if (isLoading) {

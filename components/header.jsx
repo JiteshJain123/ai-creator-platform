@@ -7,7 +7,7 @@ import { useStoreUser } from "@/hooks/use-store-user";
 import { BarLoader } from "react-spinners";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, Search } from "lucide-react";
 import { Authenticated, Unauthenticated } from "convex/react";
 import Image from "next/image";
 
@@ -69,6 +69,14 @@ export default function Header() {
         {/* Auth Actions */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <Authenticated>
+            {/* Search icon */}
+            <Link
+              href="/search"
+              className="p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <Search className="h-4 w-4" />
+            </Link>
+
             {/* Show Dashboard link on feed page */}
             {path === "/feed" && (
               <Link href="/dashboard">

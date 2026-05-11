@@ -50,6 +50,18 @@ export const toggleFollow = mutation({
         followingId: args.followingId,
         createdAt: Date.now(),
       });
+
+      // Notify the followed user
+      await ctx.db.insert("notifications", {
+        userId: args.followingId,
+        actorId: follower._id,
+        actorName: follower.name,
+        actorImage: follower.imageUrl,
+        type: "follow",
+        isRead: false,
+        createdAt: Date.now(),
+      });
+
       return { following: true };
     }
   },

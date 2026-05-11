@@ -15,7 +15,7 @@ async function listModels() {
         // Check if the model supports the 'generateContent' method
         const supportedMethods = model.supportedGenerationMethods.join(', ');
         if (supportedMethods.includes('generateContent')) {
-            console.log(`  - ${model.name} (Supports: ${supportedMethods})`);
+          console.log(`  - ${model.name} (Supports: ${supportedMethods})`);
         }
       });
     } else {
@@ -33,7 +33,7 @@ async function runTest() {
   console.log("\n--- Testing content generation... ---");
   try {
     // Using the latest recommended model for general use
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
 
     const prompt = "In one sentence, what is the color of the sky on a clear day?";
     console.log("Generating content with a test prompt...");

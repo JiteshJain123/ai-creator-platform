@@ -9,12 +9,15 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  Bookmark,
+  BookmarkCheck,
   Calendar,
   Eye,
   Heart,
   Loader2,
   MessageCircle,
   Send,
+  Share2,
   Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +26,12 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { BarLoader } from "react-spinners";
+
+const getReadingTime = (html) => {
+  if (!html) return null;
+  const words = html.replace(/<[^>]+>/g, " ").trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 200));
+};
 
 const PostPage = ({ params }) => {
   const { username, postId } = React.use(params);
@@ -34,6 +43,18 @@ const PostPage = ({ params }) => {
   );
 
   const [commentContent, setCommentContent] = useState("");
+  const [readProgress, setReadProgress] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const el = document.documentElement;
+      const scrolled = el.scrollTop || document.body.scrollTop;
+      const total = el.scrollHeight - el.clientHeight;
+      setReadProgress(total > 0 ? (scrolled / total) * 100 : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const {
     data: post,
@@ -53,6 +74,20 @@ const PostPage = ({ params }) => {
   );
 
   const toggleLike = useConvexMutation(api.likes.toggleLike);
+
+  const { data: hasBookmarked } = useConvexQuery(
+    api.bookmarks.hasBookmarked,
+    currentUser ? { postId } : "skip"
+  );
+  const { mutate: toggleBookmark } = useConvexMutation(api.bookmarks.toggleBookmark);
+
+  const handleBookmark = async () => {
+    if (!currentUser) { toast.error("Sign in to bookmark posts"); return; }
+    try {
+      const r = await toggleBookmark({ postId });
+      toast.success(r?.bookmarked ? "Bookmarked!" : "Bookmark removed");
+    } catch { toast.error("Failed to update bookmark"); }
+  };
 
   const { mutate: addComment, isLoading: isSubmittingComment } =
     useConvexMutation(api.comments.addComment);
@@ -121,6 +156,19 @@ const PostPage = ({ params }) => {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: post.title, url: window.location.href });
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("Link copied to clipboard!");
+      }
+    } catch {
+      // user cancelled share dialog
+    }
+  };
+
   const handleDeleteComment = async (commentId) => {
     try {
       await deleteComment.mutate({ commentId });
@@ -132,6 +180,12 @@ const PostPage = ({ params }) => {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
+      {/* Reading progress bar */}
+      <div
+        className="reading-progress-bar"
+        style={{ width: `${readProgress}%` }}
+      />
+
       <PublicHeader link={`/${username}`} title="Back to Profile" />
 
       <div className="max-w-4xl mx-auto px-6 py-8">
@@ -222,24 +276,56 @@ const PostPage = ({ params }) => {
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
-          <div className="flex items-center gap-6 pt-4 border-t border-slate-800">
-            <Button
-              onClick={handleLikeToggle}
-              variant="ghost"
-              className={`flex items-center gap-2 ${
-                hasLiked
-                  ? "text-red-400 hover:text-red-300"
-                  : "text-slate-400 hover:text-white"
-              }`}
-              disabled={toggleLike.isLoading}
-            >
-              <Heart className={`h-5 w-5 ${hasLiked ? "fill-current" : ""}`} />
-              {post.likeCount.toLocaleString()}
-            </Button>
+          <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={handleLikeToggle}
+                variant="ghost"
+                className={`flex items-center gap-2 ${
+                  hasLiked
+                    ? "text-red-400 hover:text-red-300"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                disabled={toggleLike.isLoading}
+              >
+                <Heart className={`h-5 w-5 ${hasLiked ? "fill-current" : ""}`} />
+                {post.likeCount.toLocaleString()}
+              </Button>
 
-            <div className="flex items-center gap-2 text-slate-400">
-              <MessageCircle className="h-5 w-5" />
-              {comments?.length || 0} comments
+              <div className="flex items-center gap-2 text-slate-400">
+                <MessageCircle className="h-5 w-5" />
+                {comments?.length || 0} comments
+              </div>
+
+              {getReadingTime(post.content) && (
+                <span className="text-sm text-slate-500">
+                  · {getReadingTime(post.content)} min read
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleBookmark}
+                variant="ghost"
+                size="sm"
+                className={hasBookmarked ? "text-purple-400 hover:text-purple-300" : "text-slate-400 hover:text-white"}
+              >
+                {hasBookmarked
+                  ? <BookmarkCheck className="h-4 w-4 mr-1.5" />
+                  : <Bookmark className="h-4 w-4 mr-1.5" />}
+                {hasBookmarked ? "Saved" : "Save"}
+              </Button>
+
+              <Button
+                onClick={handleShare}
+                variant="ghost"
+                size="sm"
+                className="text-slate-400 hover:text-purple-300"
+              >
+                <Share2 className="h-4 w-4 mr-1.5" />
+                Share
+              </Button>
             </div>
           </div>
         </article>
