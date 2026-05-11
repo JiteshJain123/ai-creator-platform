@@ -2,13 +2,14 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-  throw new Error("GEMINI_API_KEY environment variable is not set.");
+function getModel() {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY environment variable is not set.");
+  }
+  const genAI = new GoogleGenerativeAI(apiKey);
+  return genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-3.1-flash-lite-preview" });
 }
-
-const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-3.1-flash-lite-preview" });
 
 // ── Generate full blog content ──────────────────────────────────────────────
 export async function generateBlogContent(title, category = "", tags = []) {
@@ -27,7 +28,7 @@ Requirements:
 - Include examples and actionable advice
 Start directly with the first paragraph.`;
 
-    const result = await model.generateContent(prompt);
+    const result = await getModel().generateContent(prompt);
     const content = result.response.text();
     if (!content || content.trim().length < 100) throw new Error("Generated content too short");
     return { success: true, content: content.trim() };
@@ -47,7 +48,7 @@ export async function improveContent(currentContent, improvementType = "enhance"
       enhance: `Improve this blog content by making it more engaging and well-structured. Improve flow, add better transitions, and maintain the original HTML format:\n\n${currentContent}`,
     };
 
-    const result = await model.generateContent(prompts[improvementType] || prompts.enhance);
+    const result = await getModel().generateContent(prompts[improvementType] || prompts.enhance);
     const content = result.response.text();
     return { success: true, content: content.trim() };
   } catch (error) {
@@ -71,7 +72,7 @@ ${textPreview ? `Content preview: "${textPreview}"` : ""}
 Return ONLY a JSON array of lowercase tag strings. Example: ["javascript","web-development","react"]
 No explanation, no markdown, just the JSON array.`;
 
-    const result = await model.generateContent(prompt);
+    const result = await getModel().generateContent(prompt);
     let text = result.response.text().trim();
 
     // Strip any markdown code fences if present
@@ -103,7 +104,7 @@ ${category ? `Category: ${category}` : ""}
 Return ONLY a JSON array of title strings. Example: ["Title One","Title Two","Title Three"]
 No explanation, no markdown, just the JSON array.`;
 
-    const result = await model.generateContent(prompt);
+    const result = await getModel().generateContent(prompt);
     let text = result.response.text().trim();
     text = text.replace(/^```[a-z]*\n?/i, "").replace(/\n?```$/i, "").trim();
 
